@@ -1,10 +1,9 @@
-import "./style.css";
 import Phaser from "phaser";
 import { STAGE } from "./game/config";
 import { BootScene } from "./game/scenes/BootScene";
 import { GameScene } from "./game/scenes/GameScene";
 
-async function startGame(): Promise<void> {
+export async function startGame(): Promise<Phaser.Game> {
   await document.fonts.ready;
 
   const game = new Phaser.Game({
@@ -38,6 +37,5 @@ async function startGame(): Promise<void> {
     "aria-label",
     "Wack a Drive. Start a round, then tap active hard drives as they emerge from the nine bays.",
   );
+  return game;
 }
-
-void startGame();

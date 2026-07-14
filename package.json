@@ -4,17 +4,26 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "dev": "vinext dev",
+    "build": "tsc --noEmit && vinext build && node scripts/prepare-sites-build.mjs",
+    "start": "vinext start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
     "@fontsource/orbitron": "5.2.8",
     "@fontsource/rajdhani": "5.2.7",
-    "phaser": "4.2.1"
+    "phaser": "4.2.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-server-dom-webpack": "19.2.7",
+    "vinext": "1.0.0-beta.1"
   },
   "devDependencies": {
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.3",
+    "@vitejs/plugin-rsc": "0.5.27",
     "typescript": "7.0.2",
     "vite": "8.1.4",
     "vitest": "4.1.10"
