@@ -7,6 +7,7 @@ export class BayView {
   private readonly slot: Phaser.GameObjects.Graphics;
   private readonly drive: Phaser.GameObjects.Container;
   private readonly led: Phaser.GameObjects.Arc;
+  private readonly hitCross: Phaser.GameObjects.Graphics;
   private readonly hitZone: Phaser.GameObjects.Rectangle;
   private animationId = 0;
 
@@ -23,6 +24,7 @@ export class BayView {
     const driveParts = this.createDrive();
     this.drive = driveParts.container;
     this.led = driveParts.led;
+    this.hitCross = driveParts.hitCross;
 
     this.hitZone = scene.add
       .rectangle(x, y, hitSize, hitSize, 0xffffff, 0.001)
@@ -37,12 +39,14 @@ export class BayView {
   pop(): void {
     const animationId = ++this.animationId;
     this.scene.tweens.killTweensOf(this.drive);
+    this.scene.tweens.killTweensOf(this.hitCross);
     this.drive
       .setVisible(true)
       .setAlpha(1)
       .setAngle(0)
       .setPosition(this.x, this.y + 20)
       .setScale(this.reducedMotion ? 0.96 : 0.72);
+    this.hitCross.setVisible(false).setAlpha(1).setScale(1);
     this.led.setFillStyle(0x63f2d0);
 
     this.scene.tweens.add({
@@ -60,6 +64,8 @@ export class BayView {
   retract(): void {
     const animationId = ++this.animationId;
     this.scene.tweens.killTweensOf(this.drive);
+    this.scene.tweens.killTweensOf(this.hitCross);
+    this.hitCross.setVisible(false);
     this.led.setFillStyle(0xefb94f);
     this.scene.tweens.add({
       targets: this.drive,
@@ -77,8 +83,22 @@ export class BayView {
   hit(): void {
     const animationId = ++this.animationId;
     this.scene.tweens.killTweensOf(this.drive);
+    this.scene.tweens.killTweensOf(this.hitCross);
     this.led.setFillStyle(0xff5d4d);
+    this.hitCross
+      .setVisible(true)
+      .setAlpha(1)
+      .setScale(this.reducedMotion ? 1 : 0.35);
     this.createSparks();
+
+    if (!this.reducedMotion) {
+      this.scene.tweens.add({
+        targets: this.hitCross,
+        scale: 1,
+        duration: 75,
+        ease: "Back.Out",
+      });
+    }
 
     this.scene.tweens.add({
       targets: this.drive,
@@ -87,10 +107,14 @@ export class BayView {
       scaleY: 0.66,
       angle: this.reducedMotion ? 0 : Phaser.Math.Between(-7, 7),
       alpha: 0,
-      duration: this.reducedMotion ? 55 : 180,
+      delay: this.reducedMotion ? 120 : 230,
+      duration: this.reducedMotion ? 55 : 100,
       ease: "Cubic.In",
       onComplete: () => {
-        if (animationId === this.animationId) this.drive.setVisible(false);
+        if (animationId === this.animationId) {
+          this.drive.setVisible(false);
+          this.hitCross.setVisible(false);
+        }
       },
     });
   }
@@ -98,7 +122,9 @@ export class BayView {
   reset(): void {
     this.animationId += 1;
     this.scene.tweens.killTweensOf(this.drive);
+    this.scene.tweens.killTweensOf(this.hitCross);
     this.drive.setVisible(false).setAlpha(0).setAngle(0);
+    this.hitCross.setVisible(false).setAlpha(1).setScale(1);
     this.led.setFillStyle(0x314b52);
   }
 
@@ -125,7 +151,11 @@ export class BayView {
     return slot;
   }
 
-  private createDrive(): { container: Phaser.GameObjects.Container; led: Phaser.GameObjects.Arc } {
+  private createDrive(): {
+    container: Phaser.GameObjects.Container;
+    led: Phaser.GameObjects.Arc;
+    hitCross: Phaser.GameObjects.Graphics;
+  } {
     const container = this.scene.add.container(this.x, this.y + 20).setDepth(10).setVisible(false);
     const shadow = this.scene.add.graphics();
     shadow.fillStyle(0x000000, 0.42);
@@ -173,8 +203,25 @@ export class BayView {
       .setOrigin(0.5);
 
     const led = this.scene.add.circle(34, 34, 3.5, 0x314b52);
-    container.add([shadow, body, platter, arm, label, led]);
-    return { container, led };
+
+    const hitCross = this.scene.add.graphics().setVisible(false);
+    hitCross.lineStyle(11, 0x26080a, 0.82);
+    hitCross.beginPath();
+    hitCross.moveTo(-34, -34);
+    hitCross.lineTo(34, 34);
+    hitCross.moveTo(34, -34);
+    hitCross.lineTo(-34, 34);
+    hitCross.strokePath();
+    hitCross.lineStyle(7, 0xff3f35, 1);
+    hitCross.beginPath();
+    hitCross.moveTo(-34, -34);
+    hitCross.lineTo(34, 34);
+    hitCross.moveTo(34, -34);
+    hitCross.lineTo(-34, 34);
+    hitCross.strokePath();
+
+    container.add([shadow, body, platter, arm, label, led, hitCross]);
+    return { container, led, hitCross };
   }
 
   private setHovered(hovered: boolean): void {
