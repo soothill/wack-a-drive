@@ -19,7 +19,7 @@ export async function startGame(): Promise<Phaser.Game> {
     },
     scale: {
       mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH,
+      autoCenter: Phaser.Scale.NO_CENTER,
       width: STAGE.width,
       height: STAGE.height,
     },
