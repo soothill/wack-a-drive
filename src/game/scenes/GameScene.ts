@@ -7,12 +7,12 @@ import type { RoundEvent } from "../types";
 import { BayView } from "../view/BayView";
 
 const COLORS = {
-  cyan: 0x63f2d0,
-  yellow: 0xf3c95d,
-  red: 0xff6254,
-  panel: 0x101f27,
-  panelLight: 0x182d36,
-  ink: 0x061016,
+  cream: 0xfff4d6,
+  coral: 0xff675c,
+  yellow: 0xffcf4a,
+  mint: 0x4de0bd,
+  panelLight: 0x1b4b61,
+  ink: 0x071a29,
 } as const;
 
 export class GameScene extends Phaser.Scene {
@@ -61,95 +61,139 @@ export class GameScene extends Phaser.Scene {
   }
 
   private drawBackdrop(): void {
-    this.cameras.main.setBackgroundColor("#07131b");
+    this.cameras.main.setBackgroundColor("#071a29");
     const graphics = this.add.graphics();
-    graphics.fillStyle(0x0c202a, 1);
+    graphics.fillStyle(0x0d2c40, 1);
     graphics.fillRect(0, 0, STAGE.width, STAGE.height);
-    graphics.fillStyle(0x071219, 1);
-    graphics.fillTriangle(0, 0, STAGE.width, 0, STAGE.width, 410);
-    graphics.fillStyle(0x102c34, 0.34);
-    graphics.fillCircle(340, 88, 155);
-    graphics.fillStyle(0x071117, 0.72);
-    graphics.fillCircle(30, 720, 190);
+    graphics.fillStyle(0x174a5f, 0.75);
+    graphics.fillCircle(350, 82, 170);
+    graphics.fillStyle(COLORS.coral, 0.08);
+    graphics.fillCircle(28, 710, 185);
+    graphics.fillStyle(COLORS.yellow, 0.055);
+    graphics.fillCircle(30, 40, 120);
 
-    graphics.lineStyle(1, 0x5ad4cc, 0.055);
-    for (let x = -300; x < 500; x += 18) {
-      graphics.lineBetween(x, 0, x + 390, 780);
+    graphics.fillStyle(COLORS.cream, 0.12);
+    for (let row = 0; row < 14; row += 1) {
+      for (let column = 0; column < 7; column += 1) {
+        graphics.fillCircle(24 + column * 58 + (row % 2) * 12, 22 + row * 58, 1.4);
+      }
     }
 
-    graphics.fillStyle(0x050c11, 0.82);
-    graphics.fillRoundedRect(6, 6, 378, 768, 21);
-    graphics.lineStyle(1, 0x7edbd5, 0.15);
-    graphics.strokeRoundedRect(6, 6, 378, 768, 21);
+    graphics.fillStyle(0x04131f, 0.46);
+    graphics.fillRoundedRect(8, 9, 378, 768, 28);
+    graphics.lineStyle(4, 0x051621, 0.9);
+    graphics.strokeRoundedRect(8, 9, 374, 764, 27);
+    graphics.lineStyle(2, 0x2e6374, 0.8);
+    graphics.strokeRoundedRect(12, 13, 366, 756, 24);
+
+    graphics.fillStyle(COLORS.yellow, 1);
+    graphics.fillCircle(23, 25, 4);
+    graphics.fillCircle(367, 25, 4);
+    graphics.fillStyle(COLORS.coral, 1);
+    graphics.fillCircle(23, 755, 4);
+    graphics.fillCircle(367, 755, 4);
   }
 
   private drawHeader(): void {
+    const badge = this.add.graphics();
+    badge.fillStyle(COLORS.coral, 1);
+    badge.fillRoundedRect(136, 23, 118, 20, 10);
     this.add
-      .text(195, 43, "WACK A DRIVE", {
-        fontFamily: "Orbitron",
-        fontSize: "27px",
-        fontStyle: "bold",
-        color: "#efffff",
-        letterSpacing: 2,
-      })
-      .setOrigin(0.5);
-    this.add
-      .text(195, 76, "DATA CENTER EMERGENCY RESPONSE", {
+      .text(195, 33, "RACK ATTACK!", {
         fontFamily: "Rajdhani",
         fontSize: "12px",
         fontStyle: "bold",
-        color: "#63f2d0",
+        color: "#fff4d6",
+        letterSpacing: 1.5,
+      })
+      .setOrigin(0.5);
+    this.add
+      .text(195, 64, "WACK-A-DRIVE", {
+        fontFamily: "Bungee",
+        fontSize: "28px",
+        color: "#fff4d6",
+      })
+      .setOrigin(0.5);
+    this.add
+      .text(195, 89, "SMASH THE BAD DISKS", {
+        fontFamily: "Rajdhani",
+        fontSize: "13px",
+        fontStyle: "bold",
+        color: "#4de0bd",
         letterSpacing: 2,
       })
       .setOrigin(0.5);
   }
 
   private createHud(): void {
-    this.createHudCard(68, "SCORE");
-    this.createHudCard(195, "TIME");
-    this.createHudCard(322, "BEST");
+    this.createHudCard(68, "SCORE", COLORS.mint);
+    this.createHudCard(195, "TIME", COLORS.yellow);
+    this.createHudCard(322, "BEST", COLORS.coral);
 
     const valueStyle: Phaser.Types.GameObjects.Text.TextStyle = {
-      fontFamily: "Orbitron",
-      fontSize: "25px",
-      fontStyle: "bold",
-      color: "#f5fbfc",
+      fontFamily: "Bungee",
+      fontSize: "24px",
+      color: "#fff4d6",
     };
-    this.scoreText = this.add.text(68, 146, "00", valueStyle).setOrigin(0.5);
-    this.timerText = this.add.text(195, 146, "45", valueStyle).setOrigin(0.5);
-    this.bestText = this.add.text(322, 146, this.formatScore(this.bestScore), valueStyle).setOrigin(0.5);
+    this.scoreText = this.add.text(68, 153, "00", valueStyle).setOrigin(0.5);
+    this.timerText = this.add.text(195, 153, "45", valueStyle).setOrigin(0.5);
+    this.bestText = this.add.text(322, 153, this.formatScore(this.bestScore), valueStyle).setOrigin(0.5);
   }
 
-  private createHudCard(x: number, label: string): void {
+  private createHudCard(x: number, label: string, accent: number): void {
     const card = this.add.graphics();
-    card.fillStyle(COLORS.panel, 0.95);
-    card.fillRoundedRect(x - 56, 101, 112, 77, 12);
-    card.lineStyle(1, 0x4c7c83, 0.5);
-    card.strokeRoundedRect(x - 56, 101, 112, 77, 12);
+    card.fillStyle(0x03131f, 0.72);
+    card.fillRoundedRect(x - 54, 112, 108, 71, 15);
+    card.lineStyle(3, 0x214e61, 1);
+    card.strokeRoundedRect(x - 54, 112, 108, 71, 15);
+    card.fillStyle(accent, 1);
+    card.fillRoundedRect(x - 31, 105, 62, 23, 11);
     this.add
-      .text(x, 117, label, {
+      .text(x, 116, label, {
         fontFamily: "Rajdhani",
         fontSize: "12px",
         fontStyle: "bold",
-        color: "#74969e",
-        letterSpacing: 2,
+        color: "#071a29",
+        letterSpacing: 1.5,
       })
       .setOrigin(0.5);
   }
 
   private drawRack(): void {
     const rack = this.add.graphics();
-    rack.fillStyle(0x0b161d, 1);
-    rack.fillRoundedRect(15, 204, 360, 379, 18);
-    rack.lineStyle(2, 0x2c4a52, 1);
-    rack.strokeRoundedRect(15, 204, 360, 379, 18);
-    rack.lineStyle(1, 0x71959b, 0.3);
-    rack.strokeRoundedRect(20, 209, 350, 369, 14);
+    rack.fillStyle(0x020f18, 0.7);
+    rack.fillRoundedRect(18, 207, 360, 379, 22);
+    rack.fillStyle(COLORS.panelLight, 1);
+    rack.fillRoundedRect(13, 202, 364, 379, 22);
+    rack.lineStyle(4, COLORS.ink, 1);
+    rack.strokeRoundedRect(13, 202, 364, 379, 22);
+    rack.lineStyle(2, 0x36768a, 1);
+    rack.strokeRoundedRect(21, 210, 348, 363, 17);
 
-    rack.fillStyle(0x273d44, 1);
-    [[29, 218], [361, 218], [29, 569], [361, 569]].forEach(([x, y]) => {
+    rack.fillStyle(COLORS.yellow, 1);
+    rack.fillRoundedRect(137, 193, 116, 24, 12);
+    rack.lineStyle(3, COLORS.ink, 1);
+    rack.strokeRoundedRect(137, 193, 116, 24, 12);
+    this.add
+      .text(195, 205, "BAD DISK BAY", {
+        fontFamily: "Rajdhani",
+        fontSize: "12px",
+        fontStyle: "bold",
+        color: "#071a29",
+        letterSpacing: 1.2,
+      })
+      .setOrigin(0.5)
+      .setDepth(4);
+
+    rack.fillStyle(COLORS.cream, 1);
+    [[30, 220], [360, 220], [30, 563], [360, 563]].forEach(([x, y]) => {
       if (x !== undefined && y !== undefined) rack.fillCircle(x, y, 4);
     });
+    rack.fillStyle(COLORS.ink, 1);
+    rack.fillCircle(30, 220, 1.5);
+    rack.fillCircle(360, 220, 1.5);
+    rack.fillCircle(30, 563, 1.5);
+    rack.fillCircle(360, 563, 1.5);
   }
 
   private createBays(): void {
@@ -173,31 +217,36 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createFooter(): void {
+    const statusPlate = this.add.graphics();
+    statusPlate.fillStyle(0x071a29, 0.82);
+    statusPlate.fillRoundedRect(18, 601, 354, 39, 13);
+    statusPlate.lineStyle(2, 0x24576a, 1);
+    statusPlate.strokeRoundedRect(18, 601, 354, 39, 13);
     this.statusText = this.add
-      .text(24, 618, "SYSTEM IDLE // AWAITING OPERATOR", {
+      .text(195, 620, "READY WHEN YOU ARE!", {
         fontFamily: "Rajdhani",
-        fontSize: "15px",
+        fontSize: "14px",
         fontStyle: "bold",
-        color: "#718f97",
-        letterSpacing: 1,
+        color: "#9bc4ca",
+        letterSpacing: 1.4,
       })
-      .setOrigin(0, 0.5);
+      .setOrigin(0.5);
 
     this.progressBar = this.add.graphics();
     this.drawProgress(0);
 
     const soundButton = this.add.container(319, 704).setSize(104, 42);
     const soundBackground = this.add.graphics();
-    soundBackground.fillStyle(COLORS.panelLight, 1);
+    soundBackground.fillStyle(COLORS.cream, 1);
     soundBackground.fillRoundedRect(-52, -21, 104, 42, 11);
-    soundBackground.lineStyle(1, 0x4c7c83, 0.65);
+    soundBackground.lineStyle(3, COLORS.ink, 1);
     soundBackground.strokeRoundedRect(-52, -21, 104, 42, 11);
     this.soundText = this.add
       .text(0, 0, "SFX ON", {
         fontFamily: "Rajdhani",
         fontSize: "15px",
         fontStyle: "bold",
-        color: "#9edfd9",
+        color: "#0b3d4c",
       })
       .setOrigin(0.5);
     soundButton.add([soundBackground, this.soundText]);
@@ -208,12 +257,10 @@ export class GameScene extends Phaser.Scene {
     soundButton.on("pointerdown", () => this.toggleSound());
 
     this.add
-      .text(24, 704, "TAP ACTIVE DRIVES", {
-        fontFamily: "Rajdhani",
-        fontSize: "15px",
-        fontStyle: "bold",
-        color: "#f3c95d",
-        letterSpacing: 1,
+      .text(24, 704, "TAP THE BAD ONES!", {
+        fontFamily: "Bungee",
+        fontSize: "13px",
+        color: "#ffcf4a",
       })
       .setOrigin(0, 0.5);
   }
@@ -221,14 +268,15 @@ export class GameScene extends Phaser.Scene {
   private createOverlays(): void {
     const ready = this.createOverlayBase();
     ready.add([
-      this.makeOverlayTitle("DRIVE BREACH", 284, COLORS.yellow),
-      this.makeOverlayBody("Nine unstable bays.\n45 seconds. Stay sharp.", 351),
-      this.createButton(195, 462, 230, 62, "START SHIFT", () => this.startRound()),
+      this.makeOverlayTitle("DRIVES GONE WILD!", 283, COLORS.coral),
+      this.makeOverlayBody("Nine bays. 45 seconds.\nTap every troublemaker.", 352),
+      this.createButton(195, 462, 242, 64, "START WHACKING", () => this.startRound()),
       this.add
-        .text(195, 520, "Tap or click the drives as they eject", {
+        .text(195, 520, "Fast fingers save the server room", {
           fontFamily: "Rajdhani",
-          fontSize: "15px",
-          color: "#8ca8af",
+          fontSize: "16px",
+          fontStyle: "bold",
+          color: "#345568",
         })
         .setOrigin(0.5),
     ]);
@@ -236,40 +284,45 @@ export class GameScene extends Phaser.Scene {
 
     const finished = this.createOverlayBase().setVisible(false);
     this.endScoreText = this.add
-      .text(195, 365, "00 DRIVES SECURED", {
-        fontFamily: "Orbitron",
-        fontSize: "19px",
-        fontStyle: "bold",
-        color: "#63f2d0",
+      .text(195, 364, "00 DRIVES WHACKED", {
+        fontFamily: "Bungee",
+        fontSize: "17px",
+        color: "#0b8e78",
       })
       .setOrigin(0.5);
     finished.add([
-      this.makeOverlayTitle("SHIFT COMPLETE", 284, COLORS.cyan),
+      this.makeOverlayTitle("RACK RESCUED!", 284, COLORS.mint),
       this.endScoreText,
-      this.makeOverlayBody("Rack stabilized. For now.", 410),
-      this.createButton(195, 484, 230, 62, "RUN IT AGAIN", () => this.startRound()),
+      this.makeOverlayBody("Nice work, hotshot.", 410),
+      this.createButton(195, 484, 242, 64, "WHACK AGAIN", () => this.startRound()),
     ]);
     this.endOverlay = finished;
 
     const paused = this.createOverlayBase().setVisible(false);
     paused.add([
-      this.makeOverlayTitle("SHIFT PAUSED", 315, COLORS.yellow),
-      this.makeOverlayBody("The timer is stopped.", 373),
-      this.createButton(195, 452, 230, 62, "RESUME SHIFT", () => this.resumeRound()),
+      this.makeOverlayTitle("QUICK BREAK!", 315, COLORS.yellow),
+      this.makeOverlayBody("The clock is frozen.", 373),
+      this.createButton(195, 452, 242, 64, "JUMP BACK IN", () => this.resumeRound()),
     ]);
     this.pauseOverlay = paused;
   }
 
   private createOverlayBase(): Phaser.GameObjects.Container {
     const container = this.add.container(0, 0).setDepth(100);
-    const dim = this.add.rectangle(0, 0, STAGE.width, STAGE.height, 0x03090d, 0.78).setOrigin(0);
+    const dim = this.add.rectangle(0, 0, STAGE.width, STAGE.height, 0x03121e, 0.74).setOrigin(0);
     const card = this.add.graphics();
-    card.fillStyle(0x0d1c24, 0.98);
-    card.fillRoundedRect(28, 229, 334, 337, 20);
-    card.lineStyle(2, 0x4a777d, 0.72);
-    card.strokeRoundedRect(28, 229, 334, 337, 20);
-    card.lineStyle(1, 0x8ec3c4, 0.22);
-    card.strokeRoundedRect(35, 236, 320, 323, 16);
+    card.fillStyle(0x020e17, 0.6);
+    card.fillRoundedRect(31, 235, 336, 337, 28);
+    card.fillStyle(COLORS.cream, 1);
+    card.fillRoundedRect(23, 225, 344, 337, 28);
+    card.lineStyle(5, COLORS.ink, 1);
+    card.strokeRoundedRect(23, 225, 344, 337, 28);
+    card.fillStyle(COLORS.yellow, 1);
+    card.fillTriangle(49, 247, 60, 232, 67, 251);
+    card.fillStyle(COLORS.mint, 1);
+    card.fillCircle(337, 250, 8);
+    card.lineStyle(3, COLORS.ink, 1);
+    card.strokeCircle(337, 250, 8);
     container.add([dim, card]);
     return container;
   }
@@ -277,11 +330,9 @@ export class GameScene extends Phaser.Scene {
   private makeOverlayTitle(text: string, y: number, color: number): Phaser.GameObjects.Text {
     return this.add
       .text(195, y, text, {
-        fontFamily: "Orbitron",
-        fontSize: "22px",
-        fontStyle: "bold",
+        fontFamily: "Bungee",
+        fontSize: "21px",
         color: Phaser.Display.Color.IntegerToColor(color).rgba,
-        letterSpacing: 1,
       })
       .setOrigin(0.5);
   }
@@ -292,7 +343,7 @@ export class GameScene extends Phaser.Scene {
         fontFamily: "Rajdhani",
         fontSize: "20px",
         fontStyle: "bold",
-        color: "#d6e5e7",
+        color: "#17364a",
         align: "center",
         lineSpacing: 4,
       })
@@ -309,20 +360,20 @@ export class GameScene extends Phaser.Scene {
   ): Phaser.GameObjects.Container {
     const container = this.add.container(x, y).setSize(width, height);
     const shadow = this.add.graphics();
-    shadow.fillStyle(0x000000, 0.32);
-    shadow.fillRoundedRect(-width / 2 + 3, -height / 2 + 5, width, height, 13);
+    shadow.fillStyle(COLORS.ink, 1);
+    shadow.fillRoundedRect(-width / 2 + 5, -height / 2 + 7, width, height, 15);
     const background = this.add.graphics();
-    background.fillStyle(COLORS.yellow, 1);
-    background.fillRoundedRect(-width / 2, -height / 2, width, height, 13);
-    background.lineStyle(2, 0xffe69a, 0.72);
-    background.strokeRoundedRect(-width / 2 + 2, -height / 2 + 2, width - 4, height - 4, 11);
+    background.fillStyle(COLORS.coral, 1);
+    background.fillRoundedRect(-width / 2, -height / 2, width, height, 15);
+    background.lineStyle(3, COLORS.ink, 1);
+    background.strokeRoundedRect(-width / 2, -height / 2, width, height, 15);
+    background.lineStyle(2, 0xffa49a, 1);
+    background.lineBetween(-width / 2 + 16, -height / 2 + 10, width / 2 - 16, -height / 2 + 10);
     const text = this.add
       .text(0, 0, label, {
-        fontFamily: "Orbitron",
-        fontSize: "16px",
-        fontStyle: "bold",
-        color: "#16232a",
-        letterSpacing: 1,
+        fontFamily: "Bungee",
+        fontSize: "15px",
+        color: "#fff4d6",
       })
       .setOrigin(0.5);
     container.add([shadow, background, text]);
@@ -346,7 +397,7 @@ export class GameScene extends Phaser.Scene {
     this.bays.forEach((bay) => bay.reset());
     this.controller.start(performance.now());
     this.lastShownSecond = -1;
-    this.statusText.setText("SHIFT ACTIVE // WATCH ALL NINE BAYS").setColor("#63f2d0");
+    this.statusText.setText("GO! WATCH ALL NINE BAYS").setColor("#4de0bd");
     this.announce("Round started. 45 seconds remaining.");
     this.refreshHud();
   }
@@ -355,7 +406,7 @@ export class GameScene extends Phaser.Scene {
     void this.audio.unlock();
     this.controller.resume(performance.now());
     this.pauseOverlay.setVisible(false);
-    this.statusText.setText("SHIFT ACTIVE // WATCH ALL NINE BAYS").setColor("#63f2d0");
+    this.statusText.setText("BACK IN ACTION!").setColor("#4de0bd");
     this.announce("Round resumed.");
   }
 
@@ -366,7 +417,7 @@ export class GameScene extends Phaser.Scene {
     this.bays[bayIndex]?.hit();
     this.audio.playHit(result.score);
     this.scoreText.setText(this.formatScore(result.score));
-    this.statusText.setText(`DRIVE ${String(bayIndex + 1).padStart(2, "0")} SECURED`).setColor("#f3c95d");
+    this.statusText.setText(`WHACK! DRIVE ${String(bayIndex + 1).padStart(2, "0")} GOT IT`).setColor("#ffcf4a");
     this.tryVibrate();
   }
 
@@ -388,9 +439,9 @@ export class GameScene extends Phaser.Scene {
       saveBestScore(score);
     }
     this.audio.playEnd();
-    this.endScoreText.setText(`${this.formatScore(score)} DRIVES SECURED`);
+    this.endScoreText.setText(`${this.formatScore(score)} DRIVES WHACKED`);
     this.endOverlay.setVisible(true);
-    this.statusText.setText("SHIFT COMPLETE // RACK STABILIZED").setColor("#718f97");
+    this.statusText.setText("RACK RESCUED! NICE WORK").setColor("#9bc4ca");
     this.refreshHud();
     this.announce(`Round complete. You secured ${score} drives. Best score ${this.bestScore}.`);
   }
@@ -401,7 +452,7 @@ export class GameScene extends Phaser.Scene {
     if (seconds !== this.lastShownSecond) {
       this.lastShownSecond = seconds;
       this.timerText.setText(String(seconds).padStart(2, "0"));
-      this.timerText.setColor(seconds <= 10 && snapshot.phase === "playing" ? "#ff6254" : "#f5fbfc");
+      this.timerText.setColor(seconds <= 10 && snapshot.phase === "playing" ? "#ff675c" : "#fff4d6");
     }
     this.scoreText.setText(this.formatScore(snapshot.score));
     this.bestText.setText(this.formatScore(this.bestScore));
@@ -411,18 +462,20 @@ export class GameScene extends Phaser.Scene {
   private drawProgress(progress: number): void {
     const clamped = Math.min(1, Math.max(0, progress));
     this.progressBar.clear();
-    this.progressBar.fillStyle(0x13272f, 1);
-    this.progressBar.fillRoundedRect(24, 646, 342, 9, 4);
+    this.progressBar.fillStyle(0x061723, 1);
+    this.progressBar.fillRoundedRect(24, 652, 342, 12, 6);
+    this.progressBar.lineStyle(2, 0x285a6b, 1);
+    this.progressBar.strokeRoundedRect(24, 652, 342, 12, 6);
     if (clamped > 0) {
-      this.progressBar.fillStyle(clamped > 0.78 ? COLORS.red : COLORS.cyan, 1);
-      this.progressBar.fillRoundedRect(24, 646, 342 * clamped, 9, 4);
+      this.progressBar.fillStyle(clamped > 0.78 ? COLORS.coral : COLORS.mint, 1);
+      this.progressBar.fillRoundedRect(26, 654, 338 * clamped, 8, 4);
     }
   }
 
   private toggleSound(): void {
     const muted = this.audio.toggleMuted();
     this.soundText.setText(muted ? "SFX OFF" : "SFX ON");
-    this.soundText.setColor(muted ? "#71848a" : "#9edfd9");
+    this.soundText.setColor(muted ? "#75858a" : "#0b3d4c");
     if (!muted) void this.audio.unlock().then(() => this.audio.playHit(0));
   }
 
@@ -432,7 +485,7 @@ export class GameScene extends Phaser.Scene {
     if (snapshot.phase !== "playing") return;
     this.controller.pause(performance.now());
     this.pauseOverlay.setVisible(true);
-    this.statusText.setText("SHIFT PAUSED // TIMER STOPPED").setColor("#f3c95d");
+    this.statusText.setText("PAUSED - CLOCK STOPPED").setColor("#ffcf4a");
   }
 
   private tryVibrate(): void {

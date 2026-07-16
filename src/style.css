@@ -1,12 +1,11 @@
-@import "@fontsource/orbitron/latin-700.css";
-@import "@fontsource/orbitron/latin-800.css";
+@import "@fontsource/bungee/latin-400.css";
 @import "@fontsource/rajdhani/latin-500.css";
 @import "@fontsource/rajdhani/latin-600.css";
 @import "@fontsource/rajdhani/latin-700.css";
 
 :root {
-  color: #eefcff;
-  background: #050b10;
+  color: #fff4d6;
+  background: #061724;
   font-family: "Rajdhani", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -27,9 +26,10 @@ body {
 
 body {
   background:
-    radial-gradient(circle at 50% 18%, rgba(27, 125, 146, 0.24), transparent 32rem),
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 9px),
-    linear-gradient(160deg, #07141d 0%, #03080d 62%, #071016 100%);
+    radial-gradient(circle at 18% 14%, rgba(255, 103, 92, 0.19), transparent 22rem),
+    radial-gradient(circle at 82% 76%, rgba(77, 224, 189, 0.17), transparent 25rem),
+    radial-gradient(circle, rgba(255, 244, 214, 0.08) 1.5px, transparent 1.5px) 0 0 / 22px 22px,
+    linear-gradient(145deg, #0c3348 0%, #071a29 48%, #04111c 100%);
 }
 
 #game-shell {
@@ -60,8 +60,9 @@ body {
   display: block;
   border-radius: clamp(12px, 3vw, 24px);
   box-shadow:
-    0 28px 80px rgba(0, 0, 0, 0.58),
-    0 0 0 1px rgba(144, 231, 235, 0.09);
+    0 32px 90px rgba(0, 0, 0, 0.56),
+    0 0 0 1px rgba(255, 244, 214, 0.12),
+    0 0 70px rgba(77, 224, 189, 0.09);
   touch-action: none;
 }
 
@@ -74,21 +75,21 @@ body {
   place-content: center;
   gap: 8px;
   padding: 24px;
-  border: 1px solid rgba(97, 239, 225, 0.25);
-  border-radius: 18px;
-  background: rgba(5, 14, 20, 0.96);
+  border: 3px solid #071a29;
+  border-radius: 24px;
+  background: rgba(255, 244, 214, 0.97);
   text-align: center;
 }
 
 #rotate-prompt strong {
-  color: #f5c95b;
-  font-family: "Orbitron", sans-serif;
+  color: #ff675c;
+  font-family: "Bungee", sans-serif;
   font-size: clamp(18px, 5vw, 28px);
   letter-spacing: 0.12em;
 }
 
 #rotate-prompt span {
-  color: #9eb8bf;
+  color: #17364a;
   font-size: 17px;
 }
 

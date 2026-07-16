@@ -2,6 +2,7 @@ import Phaser from "phaser";
 
 const ART_WIDTH = 98;
 const ART_HEIGHT = 92;
+const BAY_ACCENTS = [0xff675c, 0xffcf4a, 0x4de0bd, 0x62a8ff] as const;
 
 export class BayView {
   private readonly slot: Phaser.GameObjects.Graphics;
@@ -43,17 +44,18 @@ export class BayView {
     this.drive
       .setVisible(true)
       .setAlpha(1)
-      .setAngle(0)
+      .setAngle(this.reducedMotion ? 0 : Phaser.Math.Between(-4, 4))
       .setPosition(this.x, this.y + 20)
-      .setScale(this.reducedMotion ? 0.96 : 0.72);
+      .setScale(this.reducedMotion ? 0.96 : 0.66);
     this.hitCross.setVisible(false).setAlpha(1).setScale(1);
-    this.led.setFillStyle(0x63f2d0);
+    this.led.setFillStyle(0x4de0bd);
 
     this.scene.tweens.add({
       targets: this.drive,
       y: this.y - 9,
       scale: 1,
-      duration: this.reducedMotion ? 45 : 145,
+      angle: 0,
+      duration: this.reducedMotion ? 45 : 175,
       ease: this.reducedMotion ? "Linear" : "Back.Out",
       onComplete: () => {
         if (animationId === this.animationId) this.drive.setPosition(this.x, this.y - 9);
@@ -66,7 +68,7 @@ export class BayView {
     this.scene.tweens.killTweensOf(this.drive);
     this.scene.tweens.killTweensOf(this.hitCross);
     this.hitCross.setVisible(false);
-    this.led.setFillStyle(0xefb94f);
+    this.led.setFillStyle(0xffcf4a);
     this.scene.tweens.add({
       targets: this.drive,
       y: this.y + 20,
@@ -84,7 +86,7 @@ export class BayView {
     const animationId = ++this.animationId;
     this.scene.tweens.killTweensOf(this.drive);
     this.scene.tweens.killTweensOf(this.hitCross);
-    this.led.setFillStyle(0xff5d4d);
+    this.led.setFillStyle(0xff4d48);
     this.hitCross
       .setVisible(true)
       .setAlpha(1)
@@ -125,28 +127,37 @@ export class BayView {
     this.scene.tweens.killTweensOf(this.hitCross);
     this.drive.setVisible(false).setAlpha(0).setAngle(0);
     this.hitCross.setVisible(false).setAlpha(1).setScale(1);
-    this.led.setFillStyle(0x314b52);
+    this.led.setFillStyle(0x34576a);
   }
 
   private createSlot(): Phaser.GameObjects.Graphics {
+    const accent = BAY_ACCENTS[this.index % BAY_ACCENTS.length] ?? BAY_ACCENTS[0];
     const slot = this.scene.add.graphics().setDepth(2);
-    slot.fillStyle(0x020609, 0.95);
-    slot.fillRoundedRect(this.x - 52, this.y - 48, 104, 99, 13);
-    slot.lineStyle(2, 0x1c3740, 1);
-    slot.strokeRoundedRect(this.x - 52, this.y - 48, 104, 99, 13);
-    slot.fillStyle(0x0c1b22, 1);
-    slot.fillRoundedRect(this.x - 45, this.y + 30, 90, 13, 5);
-    slot.fillStyle(0x26414a, 0.55);
-    slot.fillRect(this.x - 38, this.y + 35, 76, 2);
+    slot.fillStyle(0x04131f, 0.65);
+    slot.fillRoundedRect(this.x - 49, this.y - 44, 104, 99, 15);
+    slot.fillStyle(0x071825, 1);
+    slot.fillRoundedRect(this.x - 53, this.y - 49, 104, 99, 15);
+    slot.lineStyle(3, 0x06141f, 1);
+    slot.strokeRoundedRect(this.x - 53, this.y - 49, 104, 99, 15);
+    slot.lineStyle(2, accent, 0.65);
+    slot.strokeRoundedRect(this.x - 48, this.y - 44, 94, 89, 11);
+
+    slot.fillStyle(accent, 1);
+    slot.fillRoundedRect(this.x - 46, this.y - 43, 41, 19, 8);
+    slot.fillStyle(0x17384a, 1);
+    slot.fillRoundedRect(this.x - 44, this.y + 28, 86, 14, 7);
+    slot.fillStyle(accent, 0.75);
+    slot.fillRoundedRect(this.x - 35, this.y + 33, 68, 4, 2);
+    slot.fillStyle(0xfff4d6, 0.65);
+    slot.fillCircle(this.x + 38, this.y - 36, 2.5);
 
     this.scene.add
-      .text(this.x - 43, this.y - 42, `BAY ${String(this.index + 1).padStart(2, "0")}`, {
-        fontFamily: "Rajdhani",
-        fontSize: "10px",
-        fontStyle: "bold",
-        color: "#56747c",
-        letterSpacing: 1,
+      .text(this.x - 25, this.y - 34, `#${String(this.index + 1).padStart(2, "0")}`, {
+        fontFamily: "Bungee",
+        fontSize: "9px",
+        color: "#071a29",
       })
+      .setOrigin(0.5)
       .setDepth(3);
     return slot;
   }
@@ -156,71 +167,102 @@ export class BayView {
     led: Phaser.GameObjects.Arc;
     hitCross: Phaser.GameObjects.Graphics;
   } {
+    const accent = BAY_ACCENTS[this.index % BAY_ACCENTS.length] ?? BAY_ACCENTS[0];
     const container = this.scene.add.container(this.x, this.y + 20).setDepth(10).setVisible(false);
+    const burst = this.scene.add.graphics();
+    burst.fillStyle(accent, 0.16);
+    burst.fillCircle(0, 0, 53);
+    burst.lineStyle(3, accent, 0.82);
+    burst.strokeCircle(0, 0, 49);
+    burst.lineStyle(4, 0xfff4d6, 0.75);
+    burst.lineBetween(-52, 0, -45, 0);
+    burst.lineBetween(45, 0, 52, 0);
+    burst.lineBetween(0, -52, 0, -45);
+    burst.lineBetween(0, 45, 0, 52);
+
     const shadow = this.scene.add.graphics();
-    shadow.fillStyle(0x000000, 0.42);
-    shadow.fillRoundedRect(-ART_WIDTH / 2 + 4, -ART_HEIGHT / 2 + 8, ART_WIDTH, ART_HEIGHT, 11);
+    shadow.fillStyle(0x020d15, 0.8);
+    shadow.fillRoundedRect(-ART_WIDTH / 2 + 5, -ART_HEIGHT / 2 + 8, ART_WIDTH, ART_HEIGHT, 14);
 
     const body = this.scene.add.graphics();
-    body.fillStyle(0x6f858c, 1);
-    body.fillRoundedRect(-ART_WIDTH / 2, -ART_HEIGHT / 2, ART_WIDTH, ART_HEIGHT, 10);
-    body.fillStyle(0xc7d4d4, 1);
-    body.fillRoundedRect(-ART_WIDTH / 2 + 4, -ART_HEIGHT / 2 + 4, ART_WIDTH - 8, ART_HEIGHT - 12, 8);
-    body.lineStyle(2, 0xe8f1ef, 0.55);
-    body.strokeRoundedRect(-ART_WIDTH / 2 + 5, -ART_HEIGHT / 2 + 5, ART_WIDTH - 10, ART_HEIGHT - 14, 7);
-    body.fillStyle(0x253b43, 1);
-    body.fillRoundedRect(-ART_WIDTH / 2 + 7, ART_HEIGHT / 2 - 18, ART_WIDTH - 14, 12, 3);
+    body.fillStyle(0x071a29, 1);
+    body.fillRoundedRect(-ART_WIDTH / 2, -ART_HEIGHT / 2, ART_WIDTH, ART_HEIGHT, 14);
+    body.fillStyle(0xfff4d6, 1);
+    body.fillRoundedRect(-ART_WIDTH / 2 + 5, -ART_HEIGHT / 2 + 5, ART_WIDTH - 10, ART_HEIGHT - 12, 10);
+    body.fillStyle(accent, 1);
+    body.fillRoundedRect(-ART_WIDTH / 2 + 5, -ART_HEIGHT / 2 + 5, ART_WIDTH - 10, 15, 8);
+    body.fillStyle(0x17384a, 1);
+    body.fillRoundedRect(-ART_WIDTH / 2 + 8, ART_HEIGHT / 2 - 20, ART_WIDTH - 16, 13, 5);
+    body.fillStyle(0xfff4d6, 1);
+    body.fillRoundedRect(-18, ART_HEIGHT / 2 - 16, 8, 5, 2);
+    body.fillRoundedRect(-5, ART_HEIGHT / 2 - 16, 8, 5, 2);
+    body.fillRoundedRect(8, ART_HEIGHT / 2 - 16, 8, 5, 2);
+    body.fillStyle(0x071a29, 0.7);
+    body.fillCircle(-38, -32, 2.5);
+    body.fillCircle(38, -32, 2.5);
 
     const platter = this.scene.add.graphics();
-    platter.fillStyle(0x354950, 1);
-    platter.fillCircle(-12, -8, 27);
-    platter.lineStyle(5, 0x8fa4a7, 1);
-    platter.strokeCircle(-12, -8, 21);
-    platter.lineStyle(2, 0xdce6e4, 0.75);
-    platter.strokeCircle(-12, -8, 12);
-    platter.fillStyle(0x1f3036, 1);
-    platter.fillCircle(-12, -8, 6);
-    platter.fillStyle(0xf2cb5b, 1);
-    platter.fillCircle(-12, -8, 2.5);
+    platter.fillStyle(0x0c2a3b, 1);
+    platter.fillCircle(-13, -6, 27);
+    platter.lineStyle(5, accent, 1);
+    platter.strokeCircle(-13, -6, 21);
+    platter.lineStyle(3, 0xfff4d6, 0.9);
+    platter.strokeCircle(-13, -6, 12);
+    platter.fillStyle(0x071a29, 1);
+    platter.fillCircle(-13, -6, 7);
+    platter.fillStyle(0xffcf4a, 1);
+    platter.fillCircle(-13, -6, 3);
 
     const arm = this.scene.add.graphics();
-    arm.lineStyle(5, 0x6a7c80, 1);
+    arm.lineStyle(7, 0x071a29, 1);
     arm.beginPath();
-    arm.moveTo(28, 19);
-    arm.lineTo(18, -9);
-    arm.lineTo(4, -17);
+    arm.moveTo(29, 20);
+    arm.lineTo(20, -7);
+    arm.lineTo(5, -15);
     arm.strokePath();
-    arm.fillStyle(0x33484e, 1);
-    arm.fillCircle(28, 19, 7);
+    arm.lineStyle(3, accent, 1);
+    arm.beginPath();
+    arm.moveTo(29, 20);
+    arm.lineTo(20, -7);
+    arm.lineTo(5, -15);
+    arm.strokePath();
+    arm.fillStyle(0x071a29, 1);
+    arm.fillCircle(29, 20, 8);
+    arm.fillStyle(accent, 1);
+    arm.fillCircle(29, 20, 4);
+
+    const tag = this.scene.add.graphics();
+    tag.fillStyle(accent, 1);
+    tag.fillRoundedRect(15, -37, 29, 17, 7);
 
     const label = this.scene.add
-      .text(28, -32, "DRV", {
-        fontFamily: "Orbitron",
-        fontSize: "9px",
-        fontStyle: "bold",
-        color: "#193038",
+      .text(29, -28, "BAD!", {
+        fontFamily: "Bungee",
+        fontSize: "7px",
+        color: "#071a29",
       })
       .setOrigin(0.5);
 
-    const led = this.scene.add.circle(34, 34, 3.5, 0x314b52);
+    const led = this.scene.add.circle(36, 34, 4.5, 0x34576a);
+    led.setStrokeStyle(2, 0x071a29);
 
     const hitCross = this.scene.add.graphics().setVisible(false);
-    hitCross.lineStyle(11, 0x26080a, 0.82);
+    hitCross.lineStyle(13, 0xfff4d6, 0.95);
     hitCross.beginPath();
-    hitCross.moveTo(-34, -34);
-    hitCross.lineTo(34, 34);
-    hitCross.moveTo(34, -34);
-    hitCross.lineTo(-34, 34);
+    hitCross.moveTo(-35, -35);
+    hitCross.lineTo(35, 35);
+    hitCross.moveTo(35, -35);
+    hitCross.lineTo(-35, 35);
     hitCross.strokePath();
-    hitCross.lineStyle(7, 0xff3f35, 1);
+    hitCross.lineStyle(8, 0xff3f35, 1);
     hitCross.beginPath();
-    hitCross.moveTo(-34, -34);
-    hitCross.lineTo(34, 34);
-    hitCross.moveTo(34, -34);
-    hitCross.lineTo(-34, 34);
+    hitCross.moveTo(-35, -35);
+    hitCross.lineTo(35, 35);
+    hitCross.moveTo(35, -35);
+    hitCross.lineTo(-35, 35);
     hitCross.strokePath();
 
-    container.add([shadow, body, platter, arm, label, led, hitCross]);
+    container.add([burst, shadow, body, platter, arm, tag, label, led, hitCross]);
     return { container, led, hitCross };
   }
 
@@ -236,9 +278,14 @@ export class BayView {
   private createSparks(): void {
     if (this.reducedMotion) return;
 
-    for (let index = 0; index < 6; index += 1) {
+    for (let index = 0; index < 9; index += 1) {
       const spark = this.scene.add
-        .circle(this.x, this.y - 8, Phaser.Math.Between(2, 4), index % 2 ? 0xffc54d : 0x64f4d3)
+        .circle(
+          this.x,
+          this.y - 8,
+          Phaser.Math.Between(3, 5),
+          [0xffcf4a, 0xff675c, 0xfff4d6][index % 3],
+        )
         .setDepth(30);
       const angle = Phaser.Math.FloatBetween(-2.8, -0.35);
       const distance = Phaser.Math.Between(24, 52);
@@ -248,7 +295,7 @@ export class BayView {
         y: this.y - 8 + Math.sin(angle) * distance,
         alpha: 0,
         scale: 0.2,
-        duration: Phaser.Math.Between(180, 280),
+        duration: Phaser.Math.Between(220, 340),
         ease: "Quad.Out",
         onComplete: () => spark.destroy(),
       });
