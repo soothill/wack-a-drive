@@ -19,5 +19,5 @@
     "verbatimModuleSyntax": true,
     "types": ["vitest/globals"]
   },
-  "include": ["app", "src", "tests"]
+  "include": ["src", "tests"]
 }
