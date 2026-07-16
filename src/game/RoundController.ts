@@ -78,6 +78,7 @@ export class RoundController {
     bay.state = "hit";
     bay.releaseAtMs = this.elapsedMs + this.tuning.hitCooldownMs;
     this.score += 1;
+    if (!this.hasActiveBays()) this.scheduleNextSpawn();
     return { hit: true, bayIndex, score: this.score };
   }
 
@@ -114,44 +115,69 @@ export class RoundController {
   }
 
   private expireActiveBays(events: RoundEvent[]): void {
+    let expiredAny = false;
     this.bays.forEach((bay, bayIndex) => {
       if (bay.state === "active" && bay.activeUntilMs <= this.elapsedMs) {
         bay.state = "retracting";
         bay.releaseAtMs = this.elapsedMs + this.tuning.retractCooldownMs;
         events.push({ type: "retract", bayIndex, reason: "timeout" });
+        expiredAny = true;
       }
     });
+    if (expiredAny && !this.hasActiveBays()) this.scheduleNextSpawn();
   }
 
   private trySpawn(events: RoundEvent[]): void {
     if (this.elapsedMs < this.nextSpawnAtMs) return;
 
     const difficulty = this.getDifficulty();
-    const activeCount = this.bays.filter((bay) => bay.state === "active").length;
+    if (this.hasActiveBays()) return;
+
     const idleIndices = this.bays
       .map((bay, index) => (bay.state === "idle" ? index : -1))
       .filter((index) => index >= 0);
+    const spawnCount =
+      difficulty.maxActive === 2 &&
+      idleIndices.length >= 2 &&
+      this.random() < difficulty.dualDriveChance
+        ? 2
+        : 1;
 
-    if (activeCount < difficulty.maxActive && idleIndices.length > 0) {
+    for (let spawnIndex = 0; spawnIndex < spawnCount && idleIndices.length > 0; spawnIndex += 1) {
       const randomIndex = Math.min(
         idleIndices.length - 1,
         Math.floor(this.random() * idleIndices.length),
       );
-      const bayIndex = idleIndices[randomIndex];
+      const [bayIndex] = idleIndices.splice(randomIndex, 1);
       const bay = bayIndex === undefined ? undefined : this.bays[bayIndex];
 
       if (bay && bayIndex !== undefined) {
+        const exposureJitter =
+          this.tuning.exposureJitterMin +
+          this.random() * (this.tuning.exposureJitterMax - this.tuning.exposureJitterMin);
+        const exposureMs = Math.round(difficulty.exposureMs * exposureJitter);
         bay.state = "active";
-        bay.activeUntilMs = this.elapsedMs + difficulty.exposureMs;
+        bay.activeUntilMs = this.elapsedMs + exposureMs;
         events.push({
           type: "spawn",
           bayIndex,
-          exposureMs: difficulty.exposureMs,
+          exposureMs,
           elapsedMs: this.elapsedMs,
         });
       }
     }
 
+    if (events.some((event) => event.type === "spawn" && event.elapsedMs === this.elapsedMs)) {
+      this.nextSpawnAtMs = Number.POSITIVE_INFINITY;
+    }
+  }
+
+  private hasActiveBays(): boolean {
+    return this.bays.some((bay) => bay.state === "active");
+  }
+
+  private scheduleNextSpawn(): void {
+    const difficulty = this.getDifficulty();
     const jitter = 0.84 + this.random() * 0.32;
     this.nextSpawnAtMs = this.elapsedMs + Math.round(difficulty.spawnDelayMs * jitter);
   }

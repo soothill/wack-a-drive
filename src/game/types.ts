@@ -32,6 +32,7 @@ export interface DifficultySnapshot {
   spawnDelayMs: number;
   exposureMs: number;
   maxActive: 1 | 2;
+  dualDriveChance: number;
 }
 
 export interface RoundSnapshot {

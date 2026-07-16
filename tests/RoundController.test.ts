@@ -9,7 +9,11 @@ const testTuning: RoundTuning = {
   spawnDelayEndMs: 100,
   exposureStartMs: 700,
   exposureEndMs: 400,
+  exposureJitterMin: 0.8,
+  exposureJitterMax: 1.2,
   dualDriveProgress: 0.2,
+  dualDriveChanceStart: 1,
+  dualDriveChanceEnd: 1,
   hitCooldownMs: 100,
   retractCooldownMs: 80,
   bayCount: 9,
@@ -23,9 +27,11 @@ describe("RoundController", () => {
     expect(start.spawnDelayMs).toBe(200);
     expect(start.exposureMs).toBe(700);
     expect(start.maxActive).toBe(1);
+    expect(start.dualDriveChance).toBe(0);
     expect(end.spawnDelayMs).toBe(100);
     expect(end.exposureMs).toBe(400);
     expect(end.maxActive).toBe(2);
+    expect(end.dualDriveChance).toBe(1);
   });
 
   it("scores an active bay only once", () => {
@@ -40,15 +46,53 @@ describe("RoundController", () => {
     expect(round.hitBay(8)).toMatchObject({ hit: false, score: 1 });
   });
 
-  it("can expose two drives after the opening phase", () => {
+  it("can spawn two drives simultaneously after the opening phase", () => {
     const round = new RoundController(testTuning, () => 0);
     round.start(0);
-    const firstSpawn = round.tick(1_100).filter((event) => event.type === "spawn");
-    const secondSpawn = round.tick(1_400).filter((event) => event.type === "spawn");
+    const spawns = round.tick(1_100).filter((event) => event.type === "spawn");
 
-    expect(firstSpawn).toHaveLength(1);
-    expect(secondSpawn).toHaveLength(1);
+    expect(spawns).toHaveLength(2);
+    expect(new Set(spawns.map((event) => event.bayIndex)).size).toBe(2);
     expect(round.getSnapshot().bayStates.filter((state) => state === "active")).toHaveLength(2);
+  });
+
+  it("continues to mix in single-drive waves later in the round", () => {
+    const randomValues = [0.75, 0, 0];
+    let randomIndex = 0;
+    const round = new RoundController(
+      { ...testTuning, dualDriveChanceStart: 0.5, dualDriveChanceEnd: 0.5 },
+      () => randomValues[randomIndex++] ?? 0,
+    );
+    round.start(0);
+
+    const spawns = round.tick(1_100).filter((event) => event.type === "spawn");
+
+    expect(spawns).toHaveLength(1);
+  });
+
+  it("randomizes how long each drive remains exposed", () => {
+    const values = [0, 0, 0, 0, 1];
+    let randomIndex = 0;
+    const round = new RoundController(testTuning, () => values[randomIndex++] ?? 0);
+    round.start(0);
+    const difficulty = getDifficulty(1_100, testTuning);
+    const spawns = round.tick(1_100).filter((event) => event.type === "spawn");
+
+    expect(spawns.map((event) => event.exposureMs)).toEqual([
+      Math.round(difficulty.exposureMs * testTuning.exposureJitterMin),
+      Math.round(difficulty.exposureMs * testTuning.exposureJitterMax),
+    ]);
+  });
+
+  it("waits for a recovery gap after a wave is cleared", () => {
+    const round = new RoundController(testTuning, () => 0);
+    round.start(0);
+    const spawn = round.tick(100).find((event) => event.type === "spawn");
+    if (!spawn || spawn.type !== "spawn") throw new Error("Expected a spawn event");
+
+    round.hitBay(spawn.bayIndex);
+    expect(round.tick(267).some((event) => event.type === "spawn")).toBe(false);
+    expect(round.tick(268).some((event) => event.type === "spawn")).toBe(true);
   });
 
   it("does not consume round time while paused", () => {

@@ -21,7 +21,11 @@ export interface RoundTuning {
   spawnDelayEndMs: number;
   exposureStartMs: number;
   exposureEndMs: number;
+  exposureJitterMin: number;
+  exposureJitterMax: number;
   dualDriveProgress: number;
+  dualDriveChanceStart: number;
+  dualDriveChanceEnd: number;
   hitCooldownMs: number;
   retractCooldownMs: number;
   bayCount: number;
@@ -29,12 +33,16 @@ export interface RoundTuning {
 
 export const ROUND_TUNING: RoundTuning = {
   durationMs: 45_000,
-  initialSpawnDelayMs: 420,
-  spawnDelayStartMs: 920,
-  spawnDelayEndMs: 410,
-  exposureStartMs: 1_120,
-  exposureEndMs: 520,
-  dualDriveProgress: 0.28,
+  initialSpawnDelayMs: 650,
+  spawnDelayStartMs: 880,
+  spawnDelayEndMs: 580,
+  exposureStartMs: 1_500,
+  exposureEndMs: 900,
+  exposureJitterMin: 0.9,
+  exposureJitterMax: 1.3,
+  dualDriveProgress: 0.55,
+  dualDriveChanceStart: 0.18,
+  dualDriveChanceEnd: 0.48,
   hitCooldownMs: 190,
   retractCooldownMs: 150,
   bayCount: BOARD.bayCount,
@@ -51,11 +59,20 @@ export function getDifficulty(
 ): DifficultySnapshot {
   const progress = Math.min(1, Math.max(0, elapsedMs / tuning.durationMs));
   const eased = progress * progress * (3 - 2 * progress);
+  const dualWindow = Math.max(Number.EPSILON, 1 - tuning.dualDriveProgress);
+  const dualProgress = Math.max(
+    0,
+    Math.min(1, (progress - tuning.dualDriveProgress) / dualWindow),
+  );
 
   return {
     progress,
     spawnDelayMs: Math.round(lerp(tuning.spawnDelayStartMs, tuning.spawnDelayEndMs, eased)),
     exposureMs: Math.round(lerp(tuning.exposureStartMs, tuning.exposureEndMs, eased)),
     maxActive: progress >= tuning.dualDriveProgress ? 2 : 1,
+    dualDriveChance:
+      progress >= tuning.dualDriveProgress
+        ? lerp(tuning.dualDriveChanceStart, tuning.dualDriveChanceEnd, dualProgress)
+        : 0,
   };
 }

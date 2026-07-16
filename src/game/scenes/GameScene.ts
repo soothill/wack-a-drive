@@ -417,11 +417,28 @@ export class GameScene extends Phaser.Scene {
     this.bays[bayIndex]?.hit();
     this.audio.playHit(result.score);
     this.scoreText.setText(this.formatScore(result.score));
-    this.statusText.setText(`WHACK! DRIVE ${String(bayIndex + 1).padStart(2, "0")} GOT IT`).setColor("#ffcf4a");
+    const activeDrivesRemain = this.controller
+      .getSnapshot()
+      .bayStates.some((state) => state === "active");
+    this.statusText
+      .setText(
+        activeDrivesRemain
+          ? "ONE DOWN! GET THE OTHER"
+          : `WHACK! DRIVE ${String(bayIndex + 1).padStart(2, "0")} GOT IT`,
+      )
+      .setColor("#ffcf4a");
     this.tryVibrate();
   }
 
   private processEvents(events: RoundEvent[]): void {
+    const spawnCount = events.filter((event) => event.type === "spawn").length;
+    const waveTimedOut = events.some(
+      (event) => event.type === "retract" && event.reason === "timeout",
+    );
+    if (spawnCount === 2) {
+      this.statusText.setText("DOUBLE TROUBLE! GET BOTH").setColor("#ffcf4a");
+    }
+
     for (const event of events) {
       if (event.type === "spawn") {
         this.bays[event.bayIndex]?.pop();
@@ -430,6 +447,13 @@ export class GameScene extends Phaser.Scene {
       } else {
         this.finishRound(event.score);
       }
+    }
+
+    if (
+      waveTimedOut &&
+      !this.controller.getSnapshot().bayStates.some((state) => state === "active")
+    ) {
+      this.statusText.setText("CATCH YOUR BREATH...").setColor("#9bc4ca");
     }
   }
 
