@@ -2,7 +2,7 @@
 
 A touch-first browser arcade game built with Phaser 4, TypeScript, and Vite. Hit unstable hard drives as they eject from a nine-bay rack during a 45-second shift.
 
-Play at [wack-a-mole.soothill.com](https://wack-a-mole.soothill.com).
+Play at [wack-a-drive.soothill.com](https://wack-a-drive.soothill.com).
 
 ## Run locally
 
@@ -27,4 +27,4 @@ The game stores only the best score in local browser storage under `wack-a-drive
 
 Pushes to `main` are tested, built, and deployed to GitHub Pages by the workflow in
 `.github/workflows/deploy-pages.yml`. The Pages custom domain is configured as
-`wack-a-mole.soothill.com`.
+`wack-a-drive.soothill.com`.
